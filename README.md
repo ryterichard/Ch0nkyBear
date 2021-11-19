@@ -64,3 +64,8 @@
 	-   First Seen: First check in/ register time
 	-   Laster Seen: Last comm with agent
 	-   Expected Check in: Next expected comm with agent
+
+**Special Features:
+
+- Use DNS as an alternate C2 channel instead of HTTP (Reach Goal of using image steganography to communicate)
+- Troll: Make the final payload freeze the victim machine and display an animated spider that crawls over screen as music plays. The user must solve a puzzle to get rid of the spider animation 
