@@ -1,0 +1,56 @@
+TODO:
+
+-----------------------IMPLANT-----------------
+1. Create DLL
+    https://github.com/stephenfewer/ReflectiveDLLInjection
+    - Stealer functionality (all user profiles)
+    - communication with c2 functionality (get situational info and send to c2 server, get commands, register with server)
+        - implant ID
+        - computer name
+        - user name
+        - GUID
+        - privileges
+        - ip address
+        - sessionKey
+        - sleep interval
+        - jitter
+        - first check in 
+        - last check in
+        - expected check in 
+    - Reflective load function
+    - Troll functionality
+
+2. DLL Loader export function - can use library
+--------------------IMPLANT----------------------
+
+
+--------------------C2 SERVER--------------------
+3. Create Database
+    - set up database with tables (implants, commands, jobs, clients)
+        - jitter
+        - sleep interval
+        - etc.
+4. RabbitMQ Pub sub communication model
+    - implement DNS tunneling????
+
+5. Server 
+    - connect to database info from implant
+    - connect to C2 clients
+    - connect using RabbitMQ
+    - use DNS tunneling
+------------------C2 SERVER ------------------------
+
+
+------------------C2 CLIENT ------------------------
+6. Create client
+    - use python prompt toolkit
+    - allow user to send commands
+    - connect to c2 server 
+-----------------C2 CLIENT --------------------------
+
+
+
+------------------OTHER-------------------------------
+- Rewatch lectures {8: Python C2 Srver/Client/implant, 9: Stealer, 13: DLL injection, 17: Reflective DLL injection, 18: Imports }
+- Watch Video on DNS tunneling
+- Learn prompt toolkit, RabbitMQ, SQLAlchemy, creating a SQL database
