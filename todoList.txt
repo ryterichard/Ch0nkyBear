@@ -1,6 +1,6 @@
 TODO:
 
------------------------IMPLANT-----------------
+********-----------------------IMPLANT-----------------********************
 1. Create DLL
     https://github.com/stephenfewer/ReflectiveDLLInjection
     - Stealer functionality (all user profiles)
@@ -21,7 +21,18 @@ TODO:
     - Troll functionality
 
 2. DLL Loader export function - can use library
---------------------IMPLANT----------------------
+3. Need Maldoc, and dropper
+    - Copy word doc???
+    - would dropper be dll loader??
+
+
+
+
+dll, reflective loader, headers
+
+    stealer functionality, dll injection, getting and sending data back to server
+    maldoc, trolling functionality
+********************--------------------IMPLANT----------------------****************************
 
 
 --------------------C2 SERVER--------------------
