@@ -1,6 +1,19 @@
 #include <windows.h>
-#include <stdio.h>
+#include <stdio.h> 
 #include <iostream>
+
+
+
+
+/* Definitions from reflectiveDLL injection.h (which we dont need)
+    - _REFLECTIVE_DLLInjection_H
+    - ULONG_PTR
+    - BOOL
+    - DLLEXPORT _declspec(dllexport)
+*/
+
+
+
 
 
 // 1. Define Caller using _declspec, use LoadRemoteLibraryR
