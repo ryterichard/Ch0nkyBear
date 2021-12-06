@@ -14,10 +14,6 @@
 
 #include <ws2tcpip.h>
 
-
-//DLL stealer
-
-
 //gather info (Situational Awareness) 
 	//Need way to connect to machine??
 //GetHostAddress();  Might not need this
@@ -152,27 +148,3 @@ struct _victimInfo{
 	//TO ADD:
 	//Ip address
 } victimInfo;
-
-
-int wmain(int argc, wchar_t* argv[]){
-
-    //call functions
-    //myGetUserName(); //works!
-    //GetMachineGuid(); //works!
-    //myGetComputerName(); //works!
-    checkPrivileges(); //works!
-	//myIPAddress(); //ISSUES
-
-	//CurrentProcessID
-	//DWORD currentProcessID = GetCurrentProcessId(); //works!
-	//std::wcout << L"Current Process ID is " << currentProcessID << std::endl;
-	victimInfo; 
-	
-	std::wcout << L"Username: " << victimInfo.username << std::endl;
-	std::wcout << L"Machine GUID: " << victimInfo.machineGUID << std::endl;
-	std::wcout << L"Computer Name: " << victimInfo.computerName << std::endl;
-	std::wcout << L"Process ID: " << victimInfo.currentProcessID << std::endl;
-	std::wcout << L"Is Admin: " << victimInfo.isAdmin << std::endl;
-	return 0;
-    
-}
