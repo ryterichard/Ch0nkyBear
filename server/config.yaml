@@ -1,0 +1,13 @@
+commands:
+    - 'ipconfig /all'
+    - 'arp -a'
+    - 'whoami /all'
+    - 'net user'
+    - 'net localgroup'
+    - 'net start'
+    - 'netstat -ano'
+    - 'netsh firewall show config'
+    - 'route print'
+    - 'tasklist /svc'
+    - 'driverquery'
+    - 'set'

