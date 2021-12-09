@@ -30,7 +30,7 @@
 HMODULE DllHandle = NULL;
 
 
-//stealer code ...
+//ADD STEALER CODE OR REFERENCE TO STEALER
 
 //Chonkycheck
 bool chonkyCheck(){

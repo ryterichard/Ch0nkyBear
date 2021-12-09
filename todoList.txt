@@ -65,3 +65,21 @@ dll, reflective loader, headers
 - Rewatch lectures {8: Python C2 Srver/Client/implant, 9: Stealer, 13: DLL injection, 17: Reflective DLL injection, 18: Imports }
 - Watch Video on DNS tunneling
 - Learn prompt toolkit, RabbitMQ, SQLAlchemy, creating a SQL database
+
+
+Ghidra scripting
+
+DLL INJECTION:
+Forcing a process to load a library
+The DLL upon being loaded executes whatever code is contained in its attach process code.
+
+There are a lot of reasons to do this, but in general it is used for intercepting function calls and interacting with remote processes
+
+
+
+FOR REAL:
+1. Use http request to send hex encoded data to register endpoint
+2. Set up pipe and process to run powershell commands
+3. Send hex encoded data back
+4. Create DLL
+5. Create DLL injector w/persistence
