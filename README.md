@@ -1,71 +1,53 @@
 # Ch0nkyBear
-
+Evolution from ch0nky. Check out our [extra special feature](#Extra-Special-Feature)
 
 ## Architecture  
 
 ![Image](architecture_diagram.png)
 
-** C2 Server - Python Flask**
--   Handle connections from multiple operators and implants
+### C2 Server
+-   Handles connections from multiple operators and implants
 -   Using Flask as primary listener with Gunicorn as the WSGI
 -   Using flask-SqlAlchemy to facilitate CRUD operations on agents and operators
+-   UI Interface to control the server and interact with the implant
 
-**C2 Client - Python**
-
-**Client UI - Python prompt toolkit**
-
-**Message Broker - RabbitMQ - Pub/Sub**
--   To broker messages between implant and C2, and between client and C2
-
-**Implant - C++** - target should have ch0nky.txt on file
--  Cryptography: Secure
-	-   AES-GCM recommended
-	-   Tailor payload to a device that has c0nky.txt file path using a secure hash function.
--   Situational awareness: target system data. If system has already been infected.
--   Modify config
-	-   remotely update implant configs such as C2 IP/domain
-	-   sleep time
-	-   Randomness
-	-   kill date of implant
-	-   server's public key
+### Implant
+- checks if target has ch0nky.txt on file
+-  Cryptography
+	-   AES-GCM (In Progress)
+-   Situational awareness: 
+    - Machine GUID (primary key)
+	- Computer Name
+	- Username
+	- Can execute remote commands so can escalate priveleges and gain any system info if required.
+-   Queries RUN key to check if implant has already infected the system.
 -   Execution
-	-   CreateProcess and redirect output to pipe (shell commands)
-	-   Shellcode exec (powershell.exe /c)
-	-   Reflective DLL injection/ PE injection/ COFF injection/ Dark LoadLibrary based injection
-	-   Bonus: Integrate framework such as Donut
--   Loot: chromium stealer - passwords, cookies, autofill, web history from all user profiles
+	-   Remote Command Execution
+	-   DLL Injection 
+	-   Reflective DLL injection (Ongoing)
+	-   Integrate framework such as Donut (Maybe)
+-   Loot: chromium stealer - passwords, cookies, autofill, web history from all user profiles (In Progress)
 -   Persistence - RUN registry key
--   File I/O:
-	-   read files from victim and send to C2.
-	-   Download files from C2 and write to disk.
--   Defense Evasion - Packer to obfuscate payload/RPC to mimic legitimate service.
--   RPC and C2 channel: RPC over HTTPs. Implant must be proxy aware. Should not crash if internet cuts out.
--   Special Feature??
+-   Defense Evasion - UPX packer to obfuscate payload.
 
-**Database - Postgres/MySQL **-Several tables to correspond to different object models
+### Database - PostgreSQL
 -   Clients: operators connected to the C2
-	Operator should be notified when:
-	-   A new implant connects to the C2 server for the first time
-	-   A client connects to the C2??
-	-   An operator issues a command to an agent (current operator only)
-	-   An agent responds to a job that was issued by an operator
--   Commands: Track of which operator issued what command
--   Jobs: Jobs sent to implants along with status of the job
+    - Client can remotely execute commands on specific implants registered with the C2 server
+-   Jobs: Jobs sent to implants along with status of the job and the output response
 -   Implants:
-	-   Implant ID: unique ID for each ID - can generate or target UID data
+	-   Machine GUID (primary key)
 	-   Computer Name
 	-   Username
-	-   Machine GUID
-	-   Integrity - privileges gained on target
-	-   IP address
-	-   Session Key
-	-   Sleep: How often does the agent check in
-	-   Jitter: How random is the check in
+	-   Commands executed and responses
 	-   First Seen: First check in/ register time
 	-   Laster Seen: Last comm with agent
-	-   Expected Check in: Next expected comm with agent
 
-**Special Features:
+### Special Features:
+- Initial Access Payload (Emulates ch0nky)
+- Remote Command Execution
+- Programatically control C2 via API
+- HTTP panel to control implant (with secure authentication)
+- Cryptography (In Progress)
 
-- Use DNS as an alternate C2 channel instead of HTTP (Reach Goal of using image steganography to communicate)
-- Troll: Make the final payload freeze the victim machine and display an animated spider that crawls over screen as music plays. The user must solve a puzzle to get rid of the spider animation 
+### Extra Special Feature:
+Repurpose ch0nky malware (malDoc, stager and implant) to work with ch0nkyBear C2 server. The power of ch0nky now lies with us. <- Instant A featue? - yeah definetly cuz ch0nky has been hacked :)
