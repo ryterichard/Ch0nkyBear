@@ -13,8 +13,8 @@ Ch0nkyBear server is hosted on https://ch0nkybear.herokuapp.com/
 - Incoming request hex encoded
 - Send command to specific implants
 
-![Image](control_panel.png)
+![Image](https://github.com/ryterichard/Ch0nkyBear/tree/main/resources/images/control_panel.png)
 
-![Image](implant_details.png)
+![Image](https://github.com/ryterichard/Ch0nkyBear/tree/main/resources/images/implant_details.png)
 
-![Image](implant_details2.png)
+![Image](https://github.com/ryterichard/Ch0nkyBear/tree/main/resources/images/implant_details2.png)
