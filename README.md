@@ -3,7 +3,7 @@ Evolution from ch0nky. Check out our [extra special feature](#Extra-Special-Feat
 
 ## Architecture  
 
-![Image](https://github.com/ryterichard/Ch0nkyBear/tree/main/resources/images/architecture_diagram.png)
+![Image](/resources/images/architecture_diagram.png)
 
 ### C2 Server
 -   Handles connections from multiple operators and implants
