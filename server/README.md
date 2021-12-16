@@ -17,4 +17,4 @@ Ch0nkyBear server is hosted on https://ch0nkybear.herokuapp.com/
 
 ![Image](../resources/images/implant_details.PNG)
 
-![Image](../images/implant_details2.PNG)
+![Image](../resources/images/implant_details2.PNG)
