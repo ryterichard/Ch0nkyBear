@@ -30,6 +30,10 @@ Evolution from ch0nky. Check out our [extra special feature](#Extra-Special-Feat
 -   Persistence - RUN registry key
 -   Defense Evasion - UPX packer to obfuscate payload.
 
+### Stealer
+-   Chromium stealer steals passwords and cookies from the system
+-   Run make and then the created executable ./a.exe
+
 ### Database - PostgreSQL
 -   Clients: operators connected to the C2
     - Client can remotely execute commands on specific implants registered with the C2 server
