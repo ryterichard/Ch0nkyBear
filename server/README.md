@@ -18,3 +18,24 @@ Ch0nkyBear server is hosted on https://ch0nkybear.herokuapp.com/
 ![Image](../resources/images/implant_details.PNG)
 
 ![Image](../resources/images/implant_details2.PNG)
+
+
+## Run Instructions:
+
+Activate virtual env and run app:
+```sh
+source env/bin/activate
+(env) python3 app.py
+```
+
+To create a new database (open python shell):
+```sh
+python3
+>>> from app import db
+>>> db.create_all()
+```
+
+To download all required dependencies locally:
+```sh
+pip3 install -r requirements.txt
+```
