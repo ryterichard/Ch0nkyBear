@@ -1,3 +1,7 @@
-Stealer get username, passwords and cookies. To Compile the Stealer
-- Run make
-- Run ./a.exe
+# README
+
+## Stealer gets usernames, passwords and cookies. To compile the Stealer -
+
+* Run make
+
+* Run ./a.exe
