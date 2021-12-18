@@ -5,13 +5,13 @@ Evolution from ch0nky. Check out our [extra special feature](#Extra-Special-Feat
 
 ![Image](/resources/images/architecture_diagram.png)
 
-### C2 Server
+### C2 Server (Check server folder for detailed features and running instructions)
 -   Handles connections from multiple operators and implants
 -   Using Flask as primary listener with Gunicorn as the WSGI
 -   Using flask-SqlAlchemy to facilitate CRUD operations on agents and operators
 -   UI Interface to control the server and interact with the implant
 
-### Implant
+### Implant (Check malware folder for detailed features and running instructions)
 - checks if target has ch0nky.txt on file
 -   Situational awareness: 
     - Machine GUID (primary key)
