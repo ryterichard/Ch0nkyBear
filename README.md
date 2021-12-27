@@ -1,5 +1,4 @@
 # Ch0nkyBear
-Evolution from ch0nky. Check out our [extra special feature](#Extra-Special-Feature)
 
 ## Architecture  
 
@@ -37,14 +36,6 @@ Evolution from ch0nky. Check out our [extra special feature](#Extra-Special-Feat
 	-   Commands executed and responses
 	-   First Seen: First check in/ register time
 	-   Last Seen: Last comm with agent
-
-### Special Features:
-- Initial Access Payload (Emulates ch0nky)
-- Remote Command Execution
-- HTTP panel to control implant (with secure authentication)
-
-### Extra Special Feature:
-Repurpose ch0nky malware (malDoc, stager and implant) to work with ch0nkyBear C2 server. The power of ch0nky now lies with us. <- Instant A featue? - yeah definetly cuz ch0nky has been hacked :)
 
 ### To Get Started:
 > Caution: This will infect your system with malware. Ensure you are following it in a sandboxed environment. As a cautionary measure the malware will check if C:\malware\ch0nky.txt exists on the local filesystem. Well if the file exists then you know what you are doing. You have been warned.
